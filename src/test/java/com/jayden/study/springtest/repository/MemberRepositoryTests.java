@@ -1,29 +1,28 @@
 package com.jayden.study.springtest.repository;
 
 import com.jayden.study.springtest.entity.Member;
+import org.hamcrest.collection.IsEmptyCollection;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 
+@ExtendWith(SpringExtension.class)
 @DataJpaTest
-@ActiveProfiles("test")
-@AutoConfigureTestDatabase(replace = Replace.NONE)
-class MemberRepositoryTest {
+class MemberRepositoryTests {
 
     @Autowired
-    TestEntityManager testEntityManager;
+    private TestEntityManager testEntityManager;
 
     @Autowired
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @Test
     @DisplayName("멤버 단건 조회 테스트")
@@ -64,6 +63,25 @@ class MemberRepositoryTest {
         assertThat(members).isNotNull();
         assertThat(members).hasSize(3);
         assertThat(members).extracting(Member::getUsername).contains("java", "kotlin", "go");
+    }
+
+    @Test
+    @DisplayName("멤버 삭제 테스트")
+    void removeAllMemberTest() {
+        // given
+        Member member1 = createMember("java", 14);
+        Member member2 = createMember("kotlin", 5);
+        Member member3 = createMember("go", 4);
+
+        testEntityManager.persist(member1);
+        testEntityManager.persist(member2);
+        testEntityManager.persist(member3);
+
+        // when
+        memberRepository.deleteAll();
+
+        // then
+        assertThat(memberRepository.findAll().size()).isEqualTo(0);
     }
 
     private Member createMember(String username, int age) {
